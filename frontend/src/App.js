@@ -38,7 +38,7 @@ function App() {
       setCurrentPage('chat');
       setIsConnecting(true);
       
-      const socket = new SockJS('/ws');
+      const socket = new SockJS('https://messagesvs-production.up.railway.app/ws');
       const client = new Client({
         webSocketFactory: () => socket,
         onConnect: onConnected,

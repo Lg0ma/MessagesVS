@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import './ChatScreen.css';
@@ -11,59 +11,66 @@ const ChatScreen = ({ username }) => {
 
   const stompClientRef = useRef(null);
 
-  const onConnected = (currentUsername) => {
-    setIsConnecting(false);
-    setIsConnected(true);
-
-    stompClientRef.current.subscribe('/topic/public', onMessageReceived);
-
-    stompClientRef.current.publish({
-      destination: '/app/chat.addUser',
-      body: JSON.stringify({ sender: currentUsername, type: 'JOIN' })
-    });
-  };
-
-  const onError = (error) => {
-    setIsConnecting(false);
-    setIsConnected(false);
-    console.error('Could not connect to WebSocket server:', error);
-  };
-
-  const onMessageReceived = (payload) => {
-    const message = JSON.parse(payload.body);
-
-    if (message.type === 'JOIN') {
-      message.content = message.sender + ' joined!';
-    } else if (message.type === 'LEAVE') {
-      message.content = message.sender + ' left!';
+  useEffect(() => {
+    // Clean up any existing connection first
+    if (stompClientRef.current) {
+      stompClientRef.current.deactivate();
+      stompClientRef.current = null;
     }
 
-    setMessages(prevMessages => [...prevMessages, message]);
-  };
+    if (!username) return;
 
-  useEffect(() => {
-    const connectToChat = () => {
-      setIsConnecting(true);
+    setIsConnecting(true);
 
-      const socket = new SockJS('https://messagesvs-production.up.railway.app/ws');
-      const client = new Client({
-        webSocketFactory: () => socket,
-        onConnect: () => onConnected(username),
-        onStompError: onError,
-      });
+    const onMessageReceived = (payload) => {
+      const message = JSON.parse(payload.body);
 
-      stompClientRef.current = client;
-      client.activate();
+      if (message.type === 'JOIN') {
+        message.content = message.sender + ' joined!';
+      } else if (message.type === 'LEAVE') {
+        message.content = message.sender + ' left!';
+      }
+
+      setMessages(prevMessages => [...prevMessages, message]);
     };
 
-    connectToChat();
+    const onConnected = () => {
+      setIsConnecting(false);
+      setIsConnected(true);
+
+      if (stompClientRef.current) {
+        stompClientRef.current.subscribe('/topic/public', onMessageReceived);
+
+        stompClientRef.current.publish({
+          destination: '/app/chat.addUser',
+          body: JSON.stringify({ sender: username, type: 'JOIN' })
+        });
+      }
+    };
+
+    const onError = (error) => {
+      setIsConnecting(false);
+      setIsConnected(false);
+      console.error('Could not connect to WebSocket server:', error);
+    };
+
+    const socket = new SockJS('https://messagesvs-production.up.railway.app/ws');
+    const client = new Client({
+      webSocketFactory: () => socket,
+      onConnect: onConnected,
+      onStompError: onError,
+    });
+
+    stompClientRef.current = client;
+    client.activate();
 
     return () => {
       if (stompClientRef.current) {
         stompClientRef.current.deactivate();
+        stompClientRef.current = null;
       }
     };
-  }, [username, onConnected, onError, onMessageReceived]);
+  }, [username]);
 
   const sendMessage = (event) => {
     event.preventDefault();

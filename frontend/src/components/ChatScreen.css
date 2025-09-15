@@ -28,11 +28,6 @@
   font-family: 'Courier New', monospace;
 }
 
-.chat-header::before {
-  content: 'user@chatroom:~$ ';
-  color: #ffffff;
-}
-
 .connecting {
   background: #000000;
   padding: 10px 20px;
@@ -171,33 +166,23 @@ form {
   position: relative;
 }
 
-form::before {
-  content: 'user@chatroom:~$ ';
-  color: #ffffff;
-  font-family: 'Courier New', monospace;
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
 .input-group {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 10px;
   background: transparent;
   border: none;
   padding: 0;
-  margin-left: 180px;
+  margin: 0;
+  width: 100%;
 }
 
 .input-group .form-control {
   flex: 1;
   margin: 0;
   border: none;
-  background: transparent;
-  padding: 8px 0;
+  background: #111111;
+  padding: 8px 12px;
   color: #ffffff;
   font-family: 'Courier New', monospace;
   font-size: 14px;
@@ -206,7 +191,7 @@ form::before {
 
 .input-group .form-control:focus {
   box-shadow: none;
-  background: transparent;
+  background: #111111;
 }
 
 .input-group .form-control::placeholder {
@@ -224,7 +209,7 @@ form::before {
   font-weight: normal;
   cursor: pointer;
   text-transform: uppercase;
-  margin-left: 10px;
+  margin-left: 0;
 }
 
 .primary:hover:not(:disabled) {
@@ -257,10 +242,6 @@ form::before {
   }
 
   .input-group {
-    margin-left: 120px;
-  }
-
-  form::before {
-    font-size: 12px;
+    margin: 0;
   }
 }

@@ -3,13 +3,43 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import './ChatScreen.css';
 
-const ChatScreen = ({ username, onDisconnect }) => {
+const ChatScreen = ({ username }) => {
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [messageInput, setMessageInput] = useState('');
 
   const stompClientRef = useRef(null);
+
+  const onConnected = (currentUsername) => {
+    setIsConnecting(false);
+    setIsConnected(true);
+
+    stompClientRef.current.subscribe('/topic/public', onMessageReceived);
+
+    stompClientRef.current.publish({
+      destination: '/app/chat.addUser',
+      body: JSON.stringify({ sender: currentUsername, type: 'JOIN' })
+    });
+  };
+
+  const onError = (error) => {
+    setIsConnecting(false);
+    setIsConnected(false);
+    console.error('Could not connect to WebSocket server:', error);
+  };
+
+  const onMessageReceived = (payload) => {
+    const message = JSON.parse(payload.body);
+
+    if (message.type === 'JOIN') {
+      message.content = message.sender + ' joined!';
+    } else if (message.type === 'LEAVE') {
+      message.content = message.sender + ' left!';
+    }
+
+    setMessages(prevMessages => [...prevMessages, message]);
+  };
 
   useEffect(() => {
     const connectToChat = () => {
@@ -33,25 +63,7 @@ const ChatScreen = ({ username, onDisconnect }) => {
         stompClientRef.current.deactivate();
       }
     };
-  }, [username]);
-
-  const onConnected = (currentUsername) => {
-    setIsConnecting(false);
-    setIsConnected(true);
-
-    stompClientRef.current.subscribe('/topic/public', onMessageReceived);
-
-    stompClientRef.current.publish({
-      destination: '/app/chat.addUser',
-      body: JSON.stringify({ sender: currentUsername, type: 'JOIN' })
-    });
-  };
-
-  const onError = (error) => {
-    setIsConnecting(false);
-    setIsConnected(false);
-    console.error('Could not connect to WebSocket server:', error);
-  };
+  }, [username, onConnected, onError, onMessageReceived]);
 
   const sendMessage = (event) => {
     event.preventDefault();
@@ -70,18 +82,6 @@ const ChatScreen = ({ username, onDisconnect }) => {
 
       setMessageInput('');
     }
-  };
-
-  const onMessageReceived = (payload) => {
-    const message = JSON.parse(payload.body);
-
-    if (message.type === 'JOIN') {
-      message.content = message.sender + ' joined!';
-    } else if (message.type === 'LEAVE') {
-      message.content = message.sender + ' left!';
-    }
-
-    setMessages(prevMessages => [...prevMessages, message]);
   };
 
   return (
@@ -117,7 +117,7 @@ const ChatScreen = ({ username, onDisconnect }) => {
         </ul>
         <form onSubmit={sendMessage}>
           <div className="form-group">
-            <div className="input-group">
+            <div className="">
               <input
                 type="text"
                 value={messageInput}

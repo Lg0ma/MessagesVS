@@ -24,7 +24,7 @@ function App() {
       )}
 
       {currentPage === 'chat' && (
-        <ChatScreen username={username} onDisconnect={handleDisconnect} />
+        <ChatScreen username={username} />
       )}
     </div>
   );

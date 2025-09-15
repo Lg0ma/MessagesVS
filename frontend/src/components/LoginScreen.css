@@ -1,0 +1,100 @@
+/* Terminal Login Page */
+#username-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: #000000;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.username-page-container {
+  background: #000000;
+  border: 2px solid #ffffff;
+  padding: 40px;
+  border-radius: 0;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.username-page-container::before {
+  content: '> ';
+  position: absolute;
+  top: 10px;
+  left: 15px;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.title {
+  text-align: left;
+  margin-bottom: 30px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: normal;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ffffff;
+  border-radius: 0;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  background: #000000;
+  color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  border-color: #ffffff;
+  background: #000000;
+  box-shadow: 0 0 5px #ffffff;
+}
+
+.form-control::placeholder {
+  color: #888888;
+  font-style: normal;
+}
+
+.username-submit {
+  width: 100%;
+  padding: 12px;
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  font-weight: normal;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-sizing: border-box;
+}
+
+.username-submit:hover {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .username-page-container {
+    padding: 30px 20px;
+    margin: 20px;
+    max-width: calc(100% - 40px);
+  }
+}

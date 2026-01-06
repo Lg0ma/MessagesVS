@@ -20,6 +20,7 @@ const ChatScreen = ({ username }) => {
 
     if (!username) return;
 
+    console.log('Initiating WebSocket connection for user:', username);
     setIsConnecting(true);
 
     const onMessageReceived = (payload) => {
@@ -35,6 +36,7 @@ const ChatScreen = ({ username }) => {
     };
 
     const onConnected = () => {
+      console.log('WebSocket connection established successfully');
       setIsConnecting(false);
       setIsConnected(true);
 
@@ -51,7 +53,12 @@ const ChatScreen = ({ username }) => {
     const onError = (error) => {
       setIsConnecting(false);
       setIsConnected(false);
-      console.error('Could not connect to WebSocket server:', error);
+      console.error('WebSocket connection error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        type: error?.type,
+        timestamp: new Date().toISOString()
+      });
     };
 
     const socket = new SockJS('https://messagesvs-production.up.railway.app/ws');
@@ -59,6 +66,10 @@ const ChatScreen = ({ username }) => {
       webSocketFactory: () => socket,
       onConnect: onConnected,
       onStompError: onError,
+      onWebSocketError: onError,
+      reconnectDelay: 0, // Disable automatic reconnection
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
     });
 
     stompClientRef.current = client;

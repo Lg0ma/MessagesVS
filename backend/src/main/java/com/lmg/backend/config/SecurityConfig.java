@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -24,15 +26,15 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/h2-console/**")   // allow H2 console POSTs
                 )
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin())   // required for H2 frames
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)   // required for H2 frames
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .anyRequest().permitAll()
                 )
-                        .httpBasic(httpBasic -> httpBasic.disable())
-                        .formLogin(form -> form.disable()
+                        .httpBasic(AbstractHttpConfigurer::disable)
+                        .formLogin(AbstractHttpConfigurer::disable
                 );
 
         return http.build();

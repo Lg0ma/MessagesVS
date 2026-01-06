@@ -1,25 +1,31 @@
 package com.lmg.backend.chat;
 
+import jakarta.persistence.*;  // ← You'll need this import!
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-/**
- * Data model representing a chat message in the messaging system.
- * Used for serialization/deserialization of WebSocket message payloads.
- * Supports different message types for chat, join, and leave events.
- */
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "messages")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ChatMessage {
 
-    /** The actual message content or system message text */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String content;
 
-    /** Username of the person sending the message */
     private String sender;
 
-    /** Type of message (CHAT, JOIN, or LEAVE) */
+    @Enumerated(EnumType.STRING)
     private MessageType type;
+
+    @CreationTimestamp
+    private LocalDateTime sentAt;
 }

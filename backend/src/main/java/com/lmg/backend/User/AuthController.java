@@ -19,7 +19,6 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
-        //Todo add validation for username and email
         //Check if username already exists
         if(userRepository.existsByUsername(request.getUsername())){
             return ResponseEntity

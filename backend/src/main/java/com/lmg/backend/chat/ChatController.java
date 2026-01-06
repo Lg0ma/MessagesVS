@@ -6,7 +6,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
-import com.lmg.backend.repository.ChatMessageRepository;
 
 /**
  * Controller for handling WebSocket chat operations.
@@ -28,7 +27,19 @@ public class ChatController {
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
     public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
-        return repository.save(chatMessage);
+        System.out.println("=== BEFORE SAVE ===");
+        System.out.println("Content: " + chatMessage.getContent());
+        System.out.println("Sender: " + chatMessage.getSender());
+        System.out.println("Type: " + chatMessage.getType());
+        System.out.println("ID before save: " + chatMessage.getId());
+
+        ChatMessage saved = repository.save(chatMessage);
+
+        System.out.println("=== AFTER SAVE ===");
+        System.out.println("ID after save: " + saved.getId());
+        System.out.println("SentAt: " + saved.getSentAt());
+
+        return saved;
     }
 
     /**

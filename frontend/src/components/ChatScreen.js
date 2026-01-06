@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import SockJS from 'sockjs-client';
-import { Client } from '@stomp/stompjs';
+import {Client} from '@stomp/stompjs';
 import './ChatScreen.css';
 
 const ChatScreen = ({ username }) => {
@@ -61,7 +61,7 @@ const ChatScreen = ({ username }) => {
       });
     };
 
-    const socket = new SockJS('https://messagesvs-production.up.railway.app/ws');
+    const socket = new SockJS('http://localhost:8080/ws');
     const client = new Client({
       webSocketFactory: () => socket,
       onConnect: onConnected,

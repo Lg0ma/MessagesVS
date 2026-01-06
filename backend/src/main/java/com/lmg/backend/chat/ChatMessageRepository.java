@@ -1,6 +1,4 @@
-package com.lmg.backend.repository;
-import com.lmg.backend.chat.ChatMessage;
-
+package com.lmg.backend.chat;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {

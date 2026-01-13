@@ -2,14 +2,26 @@ import React, {useEffect, useRef, useState} from 'react';
 import SockJS from 'sockjs-client';
 import {Client} from '@stomp/stompjs';
 import './ChatScreen.css';
+import {useAuth} from '../context/AuthContext';
 
-const ChatScreen = ({ username }) => {
+const ChatScreen = ({ username, onDisconnect }) => {
+  const { logout, user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [messageInput, setMessageInput] = useState('');
 
   const stompClientRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     // Clean up any existing connection first
@@ -77,11 +89,22 @@ const ChatScreen = ({ username }) => {
 
     return () => {
       if (stompClientRef.current) {
+        // Send LEAVE message before disconnecting
+        if (isConnected) {
+          try {
+            stompClientRef.current.publish({
+              destination: '/app/chat.sendMessage',
+              body: JSON.stringify({ sender: username, type: 'LEAVE' })
+            });
+          } catch (error) {
+            console.error('Error sending LEAVE message:', error);
+          }
+        }
         stompClientRef.current.deactivate();
         stompClientRef.current = null;
       }
     };
-  }, [username]);
+  }, [username, isConnected]);
 
   const sendMessage = (event) => {
     event.preventDefault();
@@ -102,57 +125,106 @@ const ChatScreen = ({ username }) => {
     }
   };
 
+  const handleLogout = () => {
+    // Send LEAVE message
+    if (stompClientRef.current && isConnected) {
+      try {
+        stompClientRef.current.publish({
+          destination: '/app/chat.sendMessage',
+          body: JSON.stringify({ sender: username, type: 'LEAVE' })
+        });
+      } catch (error) {
+        console.error('Error sending LEAVE message:', error);
+      }
+      stompClientRef.current.deactivate();
+    }
+
+    // Logout and redirect
+    logout();
+    onDisconnect();
+  };
+
   return (
-    <div id="chat-page">
-      <div className="chat-container">
-        <div className="chat-header">
-        </div>
-        {isConnecting && (
-          <div className="connecting">
-            Connecting...
-          </div>
-        )}
-        {!isConnected && !isConnecting && (
-          <div className="connecting" style={{ color: 'red' }}>
-            Could not connect to WebSocket server. Please refresh this page to try again!
-          </div>
-        )}
-        <ul id="messageArea">
-          {messages.map((message, index) => (
-            <li key={index} className={
-              message.type === 'JOIN' || message.type === 'LEAVE'
-                ? 'event-message'
-                : message.sender === username
-                  ? 'chat-message own-message'
-                  : 'chat-message other-message'
-            }>
-              {message.type === 'CHAT' && (
-                <span>{message.sender}</span>
-              )}
-              <p>{message.content}</p>
-            </li>
-          ))}
-        </ul>
-        <form onSubmit={sendMessage}>
-          <div className="form-group">
-            <div className="">
-              <input
-                type="text"
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                placeholder="Type a message..."
-                autoComplete="off"
-                className="form-control"
-                disabled={!isConnected}
-              />
-              <button type="submit" className="primary" disabled={!isConnected}>
-                Send
+      <div id="chat-page">
+        <div className="chat-container">
+          <div className="chat-header">
+            <div className="header-left">
+              <h2>MessagesVS Chat</h2>
+              <span className="connection-status">
+              {isConnecting && '🟡 Connecting...'}
+                {isConnected && '🟢 Connected'}
+                {!isConnected && !isConnecting && '🔴 Disconnected'}
+            </span>
+            </div>
+            <div className="user-info">
+              <span className="username">👤 {user?.username || username}</span>
+              <button onClick={handleLogout} className="logout-btn">
+                Logout
               </button>
             </div>
           </div>
-        </form>
+
+          {isConnecting && (
+              <div className="connecting">
+                Connecting to chat server...
+              </div>
+          )}
+
+          {!isConnected && !isConnecting && (
+              <div className="connecting error-message">
+                ⚠️ Could not connect to WebSocket server. Please refresh this page to try again!
+              </div>
+          )}
+
+          <div className="messages-container">
+            <ul id="messageArea">
+              {messages.length === 0 && isConnected && (
+                  <li className="empty-state">
+                    <p>No messages yet. Start the conversation! 👋</p>
+                  </li>
+              )}
+              {messages.map((message, index) => (
+                  <li key={index} className={
+                    message.type === 'JOIN' || message.type === 'LEAVE'
+                        ? 'event-message'
+                        : message.sender === username
+                            ? 'chat-message own-message'
+                            : 'chat-message other-message'
+                  }>
+                    {message.type === 'CHAT' && (
+                        <span className="message-sender">{message.sender}</span>
+                    )}
+                    <p className="message-content">{message.content}</p>
+                  </li>
+              ))}
+              <div ref={messagesEndRef} />
+            </ul>
+          </div>
+
+          <form onSubmit={sendMessage} className="message-form">
+            <div className="form-group">
+              <div className="input-wrapper">
+                <input
+                    type="text"
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    placeholder={isConnected ? "Type a message..." : "Connecting..."}
+                    autoComplete="off"
+                    className="form-control"
+                    disabled={!isConnected}
+                />
+                <button
+                    type="submit"
+                    className="send-button"
+                    disabled={!isConnected || !messageInput.trim()}
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
   );
 };
 

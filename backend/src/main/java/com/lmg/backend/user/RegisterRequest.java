@@ -1,4 +1,4 @@
-package com.lmg.backend.User;
+package com.lmg.backend.user;
 import lombok.Data;
 
 @Data
